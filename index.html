@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width">
+    
+  </head>
+  <body>
+    <input id = "txtin" type="text" placeholder="Please enter a username">
+    <button onclick = "go()">Go!</button><p id="wait"></p>
+    <div id="container"></div>
+    <script>
+    var fetch = function(url, callback) {
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', url, true);
+    xhr.responseType = 'json';
+    xhr.onload = function() {
+        var status = xhr.status;
+        if (status === 200) {
+            callback(null, xhr.response);
+        } else {
+            callback(status, xhr.response);
+        }
+    };
+    xhr.send();
+};
+const convert = time => {
+    let hr, min, sec, ms;
+    let parts = time.toString().split('.');
+    ms = parts.length > 1 ? parseInt((parts[1] + '00').substr(0, 3)) : undefined;
+    sec = parseInt(parts[0]);
+    if (sec >= 60) {
+        min = Math.floor(sec / 60);
+        sec = sec < 10 ? '0' + (sec % 60) : sec % 60
+    }
+    if (min >= 60) {
+        hr = Math.floor(min / 60);
+        min = min < 10 ? '0' + (min % 60) : min % 60
+    }
+    if (sec == 0) sec == "00"
+    if (min == 0) min == "00"
+    ms = ms < 10 ? '00' + ms : ms < 100 ? '0' + ms : ms;
+    if (min === undefined) return ms === undefined ? sec.toString() + 's' : sec.toString() + 's ' + ms.toString() + 'ms';
+    else if (hr === undefined) return ms === undefined ? min.toString() + 'm ' + ('0' + sec.toString()).slice(-2) + 's' : min.toString() + 'm ' + ('0' + sec.toString()).slice(-2) + 's ' + ms.toString() + 'ms';
+    else return ms === undefined ? hr.toString() + 'h ' + min.toString() + 'm ' + ('0' + sec.toString()).slice(-2) + 's' : hr.toString() + 'h ' + min.toString() + 'm ' + ('0' + sec.toString()).slice(-2) + 's ' + ms.toString() + 'ms';
+}
+function go() {
+var txtin = document.getElementById("txtin")
+if(txtin.value == "") {
+  alert("No User Specified!")
+  return
+}
+function removeAllChildNodes(parent) {
+    while (parent.firstChild) {
+        parent.removeChild(parent.firstChild);
+    }
+}
+document.getElementById("wait").innerHTML = "Please wait..."
+fetch("https://wrcomparison.komali09.repl.co/stats?user=" + txtin.value, function(err, res) {
+  if(err) alert(err)
+  var container = document.getElementById("container")
+  removeAllChildNodes(container)
+  var e = Object.entries(res)
+  for(i=0;i<e.length;i++){
+    var x = document.createElement("div")
+    x.innerHTML = "<b>" + e[i][0] + "</b>"
+    var wr = document.createElement("p")
+    wr.innerHTML = "WR is " + convert(e[i][1].wr)
+    x.appendChild(wr)
+    if(e[i][1].user != null){
+    var pb = document.createElement("p")
+    pb.innerHTML = "PB is " + convert(e[i][1].user)
+    x.appendChild(pb)
+    var per = document.createElement("p")
+    per.innerHTML = "% is " + (((e[i][1].user - e[i][1].wr)/e[i][1].wr)*100).toFixed(3)
+    x.appendChild(per)
+    }
+    container.appendChild(x)
+  }
+})
+}
+
+      </script>
+  </body>
+</html>
